@@ -13,19 +13,27 @@ func main() {
 	for {
 		fmt.Fprint(os.Stdout, "$ ")
 
-		command, err := bufio.NewReader(os.Stdin).ReadString('\n')
+		command := readCommand()
+		args := strings.Fields(command)
 
-		command = strings.TrimSpace(command)
-
-		if command == "exit 0" {
+		switch args[0] {
+		case "echo":
+			if len(args) > 1 {
+				fmt.Println(strings.Join(args[1:], " "))
+			}
+		case "exit":
 			os.Exit(0)
+		default:
+			fmt.Println(command + ": command not found")
 		}
-
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "Error reading command", err)
-			os.Exit(1)
-		}
-
-		fmt.Println(command + ": command not found")
 	}
+}
+
+func readCommand() string {
+	command, err := bufio.NewReader(os.Stdin).ReadString('\n')
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error reading command", err)
+		os.Exit(1)
+	}
+	return strings.TrimSpace(command)
 }
