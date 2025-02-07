@@ -21,6 +21,14 @@ func main() {
 			if len(args) > 1 {
 				fmt.Println(strings.Join(args[1:], " "))
 			}
+		case "type":
+			if len(args) > 1 {
+				if args[1] == "echo" || args[1] == "type" || args[1] == "exit" {
+					fmt.Println(args[1] + " is a shell builtin")
+				} else {
+					fmt.Println(args[1] + ": not found")
+				}
+			}
 		case "exit":
 			os.Exit(0)
 		default:
