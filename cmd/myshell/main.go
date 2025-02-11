@@ -4,10 +4,15 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 )
 
-var _ = fmt.Fprint
+var builtin = map[string]bool{
+	"echo": true,
+	"type": true,
+	"exit": true,
+}
 
 func main() {
 	for {
@@ -23,16 +28,16 @@ func main() {
 			}
 		case "type":
 			if len(args) > 1 {
-				if args[1] == "echo" || args[1] == "type" || args[1] == "exit" {
-					fmt.Println(args[1] + " is a shell builtin")
-				} else {
-					fmt.Println(args[1] + ": not found")
+				for _, cmd := range args[1:] {
+					isBuiltin(cmd)
 				}
+			} else {
+				fmt.Println("type: missing argument")
 			}
 		case "exit":
 			os.Exit(0)
 		default:
-			fmt.Println(command + ": command not found!")
+			fmt.Println(command + ": command not found")
 		}
 	}
 }
@@ -44,4 +49,17 @@ func readCommand() string {
 		os.Exit(1)
 	}
 	return strings.TrimSpace(command)
+}
+
+func isBuiltin(cmd string) {
+	if builtin[cmd] {
+		fmt.Printf("%s is a shell builtin\n", cmd)
+		return
+	}
+	path, err := exec.LookPath(cmd)
+	if err != nil {
+		fmt.Printf("%s: not found\n", cmd)
+	} else {
+		fmt.Printf("%s is %s\n", cmd, path)
+	}
 }
