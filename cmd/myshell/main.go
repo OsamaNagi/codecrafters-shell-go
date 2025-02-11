@@ -99,8 +99,12 @@ func runCommand(args []string) {
 
 func changeDirectory(path string) {
 	if !strings.HasPrefix(path, "/") {
-		fmt.Println("cd: only absolute paths are supported")
-		return
+		dir, err := os.Getwd()
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Error getting current directory", err)
+			os.Exit(1)
+		}
+		path = dir + "/" + path
 	}
 
 	err := os.Chdir(path)
