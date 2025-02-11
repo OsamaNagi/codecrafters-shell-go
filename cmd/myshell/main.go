@@ -12,6 +12,7 @@ var builtin = map[string]bool{
 	"echo": true,
 	"type": true,
 	"exit": true,
+	"pwd":  true,
 }
 
 func main() {
@@ -34,6 +35,13 @@ func main() {
 			} else {
 				fmt.Println("type: missing argument")
 			}
+		case "pwd":
+			dir, err := os.Getwd()
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "Error getting current directory", err)
+				os.Exit(1)
+			}
+			fmt.Println(dir)
 		case "exit":
 			os.Exit(0)
 		default:
