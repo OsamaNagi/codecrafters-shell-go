@@ -98,6 +98,10 @@ func runCommand(args []string) {
 }
 
 func changeDirectory(path string) {
+	if path == "~" {
+		path = os.Getenv("HOME")
+	}
+
 	if !strings.HasPrefix(path, "/") {
 		dir, err := os.Getwd()
 		if err != nil {
