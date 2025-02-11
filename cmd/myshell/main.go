@@ -37,7 +37,7 @@ func main() {
 		case "exit":
 			os.Exit(0)
 		default:
-			fmt.Println(command + ": command not found")
+			runCommand(args)
 		}
 	}
 }
@@ -56,10 +56,28 @@ func isBuiltin(cmd string) {
 		fmt.Printf("%s is a shell builtin\n", cmd)
 		return
 	}
+
 	path, err := exec.LookPath(cmd)
-	if err != nil {
-		fmt.Printf("%s: not found\n", cmd)
-	} else {
+	if err == nil {
 		fmt.Printf("%s is %s\n", cmd, path)
+	} else {
+		fmt.Printf("%s: not found\n", cmd)
+	}
+}
+
+func runCommand(args []string) {
+	if _, err := exec.LookPath(args[0]); err != nil {
+		fmt.Fprintf(os.Stdout, "%s: command not found\n", args[0])
+		return
+	}
+
+	cmd := exec.Command(args[0], args[1:]...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+
+	err := cmd.Run()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s: command failed: %v\n", args[0], err)
 	}
 }
