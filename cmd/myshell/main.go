@@ -13,6 +13,7 @@ var builtin = map[string]bool{
 	"type": true,
 	"exit": true,
 	"pwd":  true,
+	"cd":   true,
 }
 
 func main() {
@@ -42,6 +43,12 @@ func main() {
 				os.Exit(1)
 			}
 			fmt.Println(dir)
+		case "cd":
+			if len(args) > 1 {
+				changeDirectory(args[1])
+			} else {
+				fmt.Println("cd: missing argument")
+			}
 		case "exit":
 			os.Exit(0)
 		default:
@@ -87,5 +94,17 @@ func runCommand(args []string) {
 	err := cmd.Run()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s: command failed: %v\n", args[0], err)
+	}
+}
+
+func changeDirectory(path string) {
+	if !strings.HasPrefix(path, "/") {
+		fmt.Println("cd: only absolute paths are supported")
+		return
+	}
+
+	err := os.Chdir(path)
+	if err != nil {
+		fmt.Fprintf(os.Stdout, "cd: %s: No such file or directory\n", path)
 	}
 }
