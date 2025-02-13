@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 )
 
@@ -21,7 +22,7 @@ func main() {
 		fmt.Fprint(os.Stdout, "$ ")
 
 		command := readCommand()
-		args := strings.Fields(command)
+		args := parseArguments(command)
 
 		switch args[0] {
 		case "echo":
@@ -64,6 +65,21 @@ func readCommand() string {
 		os.Exit(1)
 	}
 	return strings.TrimSpace(command)
+}
+
+func parseArguments(input string) []string {
+	re := regexp.MustCompile(`'([^']*)'|\S+`)
+	matches := re.FindAllStringSubmatch(input, -1)
+
+	var args []string
+	for _, match := range matches {
+		if match[1] != "" {
+			args = append(args, match[1]) // Handle quoted strings
+		} else {
+			args = append(args, match[0]) // Handle normal words
+		}
+	}
+	return args
 }
 
 func isBuiltin(cmd string) {
