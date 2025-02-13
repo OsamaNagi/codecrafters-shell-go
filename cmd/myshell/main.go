@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"regexp"
 	"strings"
 )
 
@@ -67,19 +66,45 @@ func readCommand() string {
 	return strings.TrimSpace(command)
 }
 
-func parseArguments(input string) []string {
-	re := regexp.MustCompile(`'([^']*)'|\S+`)
-	matches := re.FindAllStringSubmatch(input, -1)
+// $ echo 'hello' 'world'
+// 'hello' 'world'
+// $ echo hello world
 
-	var args []string
-	for _, match := range matches {
-		if match[1] != "" {
-			args = append(args, match[1]) // Handle quoted strings
-		} else {
-			args = append(args, match[0]) // Handle normal words
+func parseArguments(input string) []string {
+	var tokens []string
+	var token strings.Builder
+	inQuote := false
+
+	i := 0
+	for i < len(input) {
+		c := input[i]
+
+		if c == '\'' {
+			inQuote = !inQuote
+			i++
+			continue
 		}
+
+		if !inQuote && (c == ' ' || c == '\t') {
+			if token.Len() > 0 {
+				tokens = append(tokens, token.String())
+				token.Reset()
+			}
+
+			for i < len(input) && (input[i] == ' ' || input[i] == '\t') {
+				i++
+			}
+			continue
+		}
+
+		token.WriteByte(c)
+		i++
 	}
-	return args
+
+	if token.Len() > 0 {
+		tokens = append(tokens, token.String())
+	}
+	return tokens
 }
 
 func isBuiltin(cmd string) {
