@@ -66,44 +66,51 @@ func readCommand() string {
 	return strings.TrimSpace(command)
 }
 
-// $ echo 'hello' 'world'
-// 'hello' 'world'
-// $ echo hello world
+// echo "script"  "hello's"  "example"
+// script hello's example
 
 func parseArguments(input string) []string {
 	var tokens []string
 	var token strings.Builder
-	inQuote := false
+	var currentQuote byte = 0
+	inToken := false
 
-	i := 0
-	for i < len(input) {
-		c := input[i]
+	for i := 0; i < len(input); i++ { // "script"  "hello's"  "example"
+		c := input[i] // ", s, c, r, i, p, t, ", " , h, e, l, l, o, ', s, ", " , e, x, a, m, p, l, e, "
+		if c == '\'' || c == '"' {
+			if currentQuote == 0 {
+				currentQuote = c // currentQuote = "
+				inToken = true
+				continue
+			}
 
-		if c == '\'' {
-			inQuote = !inQuote
-			i++
+			if currentQuote == c {
+				currentQuote = 0
+				continue
+			}
+
+			token.WriteByte(c) // s, c, r, i, p, t,
+			inToken = true
 			continue
 		}
 
-		if !inQuote && (c == ' ' || c == '\t') {
-			if token.Len() > 0 {
-				tokens = append(tokens, token.String())
+		if (c == ' ' || c == '\t') && currentQuote == 0 {
+			if inToken {
+				tokens = append(tokens, token.String()) // script, hello's, example
 				token.Reset()
-			}
-
-			for i < len(input) && (input[i] == ' ' || input[i] == '\t') {
-				i++
+				inToken = false
 			}
 			continue
 		}
 
-		token.WriteByte(c)
-		i++
+		token.WriteByte(c) // s, c, r, i, p, t,
+		inToken = true
 	}
 
-	if token.Len() > 0 {
+	if inToken {
 		tokens = append(tokens, token.String())
 	}
+
 	return tokens
 }
 
