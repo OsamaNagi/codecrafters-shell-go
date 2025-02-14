@@ -77,6 +77,7 @@ func parseArguments(input string) []string {
 
 	for i := 0; i < len(input); i++ { // "script"  "hello's"  "example"
 		c := input[i] // ", s, c, r, i, p, t, ", " , h, e, l, l, o, ', s, ", " , e, x, a, m, p, l, e, "
+
 		if c == '\'' || c == '"' {
 			if currentQuote == 0 {
 				currentQuote = c // currentQuote = "
@@ -90,6 +91,15 @@ func parseArguments(input string) []string {
 			}
 
 			token.WriteByte(c) // s, c, r, i, p, t,
+			inToken = true
+			continue
+		}
+
+		if c == '\\' && currentQuote == 0 {
+			if i+1 < len(input) {
+				token.WriteByte(input[i+1]) // s, c, r, i, p, t,
+				i++
+			}
 			inToken = true
 			continue
 		}
