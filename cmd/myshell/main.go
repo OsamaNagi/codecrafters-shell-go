@@ -95,13 +95,27 @@ func parseArguments(input string) []string {
 			continue
 		}
 
-		if c == '\\' && currentQuote == 0 {
-			if i+1 < len(input) {
-				token.WriteByte(input[i+1]) // s, c, r, i, p, t,
-				i++
+		if c == '\\' {
+			if currentQuote == '"' {
+				if i+1 < len(input) {
+					next := input[i+1]
+					if next == '"' || next == '\\' {
+						token.WriteByte(next)
+						i++
+					} else {
+						token.WriteByte(c)
+					}
+				}
+				inToken = true
+				continue
+			} else if currentQuote == 0 {
+				if i+1 < len(input) {
+					token.WriteByte(input[i+1])
+					i++
+				}
+				inToken = true
+				continue
 			}
-			inToken = true
-			continue
 		}
 
 		if (c == ' ' || c == '\t') && currentQuote == 0 {
