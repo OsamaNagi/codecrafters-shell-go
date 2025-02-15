@@ -153,15 +153,44 @@ func isBuiltin(cmd string) {
 }
 
 func runCommand(args []string) {
+	redirect := false
+	var outFileName string
+
+	for i, arg := range args {
+		if arg == ">" || arg == "1>" {
+			if i+1 < len(args) {
+				redirect = true
+				outFileName = args[i+1]
+				args = append(args[:i], args[i+2:]...)
+				break
+			} else {
+				fmt.Fprintf(os.Stdout, "Redirection operator %s requires a file operand\n", arg)
+				return
+			}
+		}
+	}
+
 	if _, err := exec.LookPath(args[0]); err != nil {
 		fmt.Fprintf(os.Stdout, "%s: command not found\n", args[0])
 		return
 	}
 
 	cmd := exec.Command(args[0], args[1:]...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+
+	if redirect {
+		f, err := os.Create(outFileName)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error opening file %s: %v\n", outFileName, err)
+			return
+		}
+		defer f.Close()
+		cmd.Stdout = f
+	} else {
+		cmd.Stdout = os.Stdout
+	}
+
 	cmd.Stdin = os.Stdin
+	cmd.Stderr = os.Stderr
 
 	err := cmd.Run()
 	if err != nil {
